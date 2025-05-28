@@ -18,12 +18,6 @@ require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-    { import = "lazyvim.plugins.extras.lang.rust" },
-    { import = "lazyvim.plugins.extras.lang.typescript" }, -- TypeScript
-    { import = "lazyvim.plugins.extras.lang.json" }, -- JSON
-
-    -- AI
-    { "github/copilot.vim" }, -- Copilot
     -- import/override with your plugins
     { import = "plugins" },
   },
@@ -36,7 +30,8 @@ require("lazy").setup({
     version = false, -- always use the latest git commit
     -- version = "*", -- try installing the latest stable version for plugins that support semver
   },
-  install = { colorscheme = { "tokyonight", "habamax" } },
+  -- install = { colorscheme = { "tokyonight", "habamax" } },
+  install = { colorscheme = { "catppuccin-mocha" } },
   checker = {
     enabled = true, -- check for plugin updates periodically
     notify = false, -- notify on update
