@@ -77,8 +77,13 @@ HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 setopt appendhistory
+
+# Set-up FZF key bindings (CTRL R for fuzzy history finder)
+source <(fzf --zsh)
+
 # Catppuccin Mocha theme for terminal
 source ~/.config/catppuccin/mocha.sh
 source ~/.config/catppuccin/fzf.sh
 
+# Enable Starship prompt
 eval "$(starship init zsh)"
