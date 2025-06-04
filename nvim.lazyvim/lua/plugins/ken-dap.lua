@@ -123,13 +123,51 @@ return {
           local conf = require("telescope.config").values
           vim.notify("cwd: " .. tostring(vim.fn.getcwd()))
 
-          local dll_dir = vim.fn.getcwd() .. "/bin/Debug/"
+          -- Find project root from current buffer's .cs file
+          local buf_path = vim.api.nvim_buf_get_name(0)
+          local function find_project_root(path)
+            local sep = package.config:sub(1, 1)
+            local dir = vim.fn.fnamemodify(path, ":p:h")
+            while dir ~= "" and dir ~= sep do
+              local csproj = vim.fn.globpath(dir, "*.csproj")
+              if csproj ~= "" then
+                return dir
+              end
+              if vim.fn.isdirectory(dir .. sep .. ".git") == 1 then
+                return dir
+              end
+              dir = vim.fn.fnamemodify(dir, ":h")
+            end
+            return vim.fn.getcwd()
+          end
+
+          local dll_dir = find_project_root(buf_path) .. "/bin/Debug/"
+
+          -- Find the .csproj file name (without extension)
+          local csproj_files = vim.fn.globpath(find_project_root(buf_path), "*.csproj", false, true)
+          local project_name = nil
+          if #csproj_files > 0 then
+            local csproj = csproj_files[1]
+            project_name = vim.fn.fnamemodify(csproj, ":t:r")
+          end
           local handle = io.popen('fd --extension dll . "' .. dll_dir .. '"')
-          local result = handle:read("*a")
-          handle:close()
+          local result = handle and handle:read("*a") or ""
+          if handle then
+            handle:close()
+          end
           local files = {}
           for file in result:gmatch("[^\r\n]+") do
             table.insert(files, file)
+          end
+          -- Set the default selection index to the first matching DLL (the name of the project)
+          local preselect_idx = 1
+          if project_name then
+            for i, file in ipairs(files) do
+              if file:match(project_name .. "%.dll$") then
+                preselect_idx = i
+                break
+              end
+            end
           end
 
           local co = coroutine.running()
@@ -138,6 +176,7 @@ return {
               prompt_title = "Pick DLL to Debug",
               finder = finders.new_table({ results = files }),
               sorter = conf.generic_sorter({}),
+              default_selection_index = preselect_idx,
               attach_mappings = function(prompt_bufnr, map)
                 actions.select_default:replace(function()
                   actions.close(prompt_bufnr)
